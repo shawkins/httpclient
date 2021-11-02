@@ -7,28 +7,21 @@ import io.fabric8.kubernetes.client.http.Interceptor;
 import io.fabric8.kubernetes.client.http.WebSocket;
 import io.fabric8.kubernetes.client.http.WebSocket.Listener;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.Reader;
-import java.net.Authenticator;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscriber;
 import java.net.http.HttpResponse.BodySubscribers;
 import java.net.http.WebSocketHandshakeException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -38,89 +31,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * - determine if write timeout should be implemented
  */
 public class JdkHttpClientImpl implements HttpClient {
-
- static class BuilderImpl implements Builder {
-
-    LinkedHashMap<String, Interceptor> interceptors = new LinkedHashMap<>();
-    Duration connectTimeout;
-    Duration readTimeout;
-    Authenticator authenticator;
-    private SSLContext sslContext;
-
-    @Override
-    public HttpClient build() {
-      java.net.http.HttpClient.Builder builder = java.net.http.HttpClient.newBuilder();
-      if (connectTimeout != null) {
-        builder.connectTimeout(connectTimeout);
-      }
-      if (authenticator != null) {
-        builder.authenticator(authenticator);
-      }
-      if (sslContext != null) {
-        builder.sslContext(sslContext);
-      }
-      return new JdkHttpClientImpl(this, builder.build());
-    }
-
-    @Override
-    public Builder readTimeout(long readTimeout, TimeUnit unit) {
-      this.readTimeout = Duration.ofNanos(unit.toNanos(readTimeout));
-      return this;
-    }
-
-    @Override
-    public Builder connectTimeout(long connectTimeout, TimeUnit unit) {
-      this.connectTimeout = Duration.ofNanos(unit.toNanos(connectTimeout));
-      return this;
-    }
-
-    @Override
-    public Builder forStreaming() {
-      // nothing to do
-      return this;
-    }
-
-    @Override
-    public Builder writeTimeout(long timeout, TimeUnit timeoutUnit) {
-      // nothing to do
-      return this;
-    }
-
-    @Override
-    public Builder addOrReplaceInterceptor(String name, Interceptor interceptor) {
-      if (interceptor == null) {
-        interceptors.remove(name);
-      } else {
-        interceptors.put(name, interceptor);
-      }
-      return this;
-    }
-
-    @Override
-    public Builder authenticatorNone() {
-      this.authenticator = new Authenticator() {
-
-      };
-      return this;
-    }
-
-    public Builder copy() {
-      BuilderImpl copy = new BuilderImpl();
-      copy.authenticator = this.authenticator;
-      copy.connectTimeout = this.connectTimeout;
-      copy.readTimeout = this.readTimeout;
-      copy.sslContext = this.sslContext;
-      copy.interceptors = new LinkedHashMap<>(this.interceptors);
-      return copy;
-    }
-
-    @Override
-    public Builder sslContext(SSLContext context, TrustManager[] trustManagers) {
-      this.sslContext = context;
-      return this;
-    }
-
-  }
 
   private static class JdkHttpResponseImpl<T> implements HttpResponse<T> {
 
@@ -157,10 +67,10 @@ public class JdkHttpClientImpl implements HttpClient {
 
   }
 
-  private BuilderImpl builder;
+  private JdkHttpClientBuilderImpl builder;
   private java.net.http.HttpClient httpClient;
 
-  public JdkHttpClientImpl(BuilderImpl builderImpl, java.net.http.HttpClient httpClient) {
+  public JdkHttpClientImpl(JdkHttpClientBuilderImpl builderImpl, java.net.http.HttpClient httpClient) {
     this.builder = builderImpl;
     this.httpClient = httpClient;
   }
@@ -329,7 +239,7 @@ public class JdkHttpClientImpl implements HttpClient {
     return response;
   }
 
-  public BuilderImpl getBuilder() {
+  public JdkHttpClientBuilderImpl getBuilder() {
     return builder;
   }
 
