@@ -7,6 +7,9 @@ import io.fabric8.kubernetes.client.http.Interceptor;
 import io.fabric8.kubernetes.client.http.WebSocket;
 import io.fabric8.kubernetes.client.http.WebSocket.Listener;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -36,12 +39,13 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class JdkHttpClientImpl implements HttpClient {
 
-  private static class BuilderImpl implements Builder {
+ static class BuilderImpl implements Builder {
 
     LinkedHashMap<String, Interceptor> interceptors = new LinkedHashMap<>();
     Duration connectTimeout;
     Duration readTimeout;
     Authenticator authenticator;
+    private SSLContext sslContext;
 
     @Override
     public HttpClient build() {
@@ -51,6 +55,9 @@ public class JdkHttpClientImpl implements HttpClient {
       }
       if (authenticator != null) {
         builder.authenticator(authenticator);
+      }
+      if (sslContext != null) {
+        builder.sslContext(sslContext);
       }
       return new JdkHttpClientImpl(this, builder.build());
     }
@@ -102,8 +109,15 @@ public class JdkHttpClientImpl implements HttpClient {
       copy.authenticator = this.authenticator;
       copy.connectTimeout = this.connectTimeout;
       copy.readTimeout = this.readTimeout;
+      copy.sslContext = this.sslContext;
       copy.interceptors = new LinkedHashMap<>(this.interceptors);
       return copy;
+    }
+
+    @Override
+    public Builder sslContext(SSLContext context, TrustManager[] trustManagers) {
+      this.sslContext = context;
+      return this;
     }
 
   }
