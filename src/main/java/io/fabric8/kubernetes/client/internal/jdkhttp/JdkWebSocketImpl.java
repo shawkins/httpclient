@@ -9,7 +9,6 @@ import java.net.http.HttpRequest;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicLong;
@@ -55,13 +54,6 @@ public class JdkWebSocketImpl implements WebSocket {
 
     public HttpRequest asRequest() {
       return this.builder.build();
-    }
-
-    public Builder timeout(Duration duration) {
-      if (duration != null) {
-        builder.timeout(duration);
-      }
-      return this;
     }
 
     public BuilderImpl copy() {
@@ -129,7 +121,7 @@ public class JdkWebSocketImpl implements WebSocket {
   }
 
   private java.net.http.WebSocket webSocket;
-  private AtomicLong queueSize = new AtomicLong();
+  private AtomicLong queueSize;
 
   public JdkWebSocketImpl(AtomicLong queueSize, java.net.http.WebSocket webSocket) {
     this.queueSize = queueSize;
@@ -147,6 +139,10 @@ public class JdkWebSocketImpl implements WebSocket {
     return asBoolean(cf);
   }
 
+  /**
+   * If there is an illegalstateexception or other immediate failure, return
+   * false, otherwise it should have been enqueued
+   */
   private boolean asBoolean(CompletableFuture<java.net.http.WebSocket> cf) {
     try {
       cf.getNow(null);

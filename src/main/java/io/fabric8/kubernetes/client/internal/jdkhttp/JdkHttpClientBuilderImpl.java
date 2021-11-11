@@ -1,7 +1,9 @@
 package io.fabric8.kubernetes.client.internal.jdkhttp;
 
+import io.fabric8.kubernetes.client.http.BasicBuilder;
 import io.fabric8.kubernetes.client.http.HttpClient;
 import io.fabric8.kubernetes.client.http.HttpClient.Builder;
+import io.fabric8.kubernetes.client.http.HttpHeaders;
 import io.fabric8.kubernetes.client.http.Interceptor;
 import io.fabric8.kubernetes.client.http.TlsVersion;
 
@@ -20,7 +22,16 @@ import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-// TODO: if there is another implementation that does not support client builder copying, then this needs to be abstracted
+/**
+ * TODO: if there is another implementation that does not support client builder copying, then this needs to be abstracted -
+ * or change the paradigm to directly hold the configuration
+ *
+ * proxyAuthorization is being done as a header that is always added - rather than in response to a proxy auth failure.
+ * It also seems to require jdk.http.auth.tunneling.disabledSchemes as an empty list
+ * see https://stackoverflow.com/questions/53333556/proxy-authentication-with-jdk-11-httpclient
+ *
+ */
+
 class JdkHttpClientBuilderImpl implements Builder {
 
   LinkedHashMap<String, Interceptor> interceptors = new LinkedHashMap<>();
@@ -56,7 +67,14 @@ class JdkHttpClientBuilderImpl implements Builder {
       builder.proxy(java.net.http.HttpClient.Builder.NO_PROXY);
     }
     if (proxyAuthorization != null) {
-      // TODO: just a regular inteceptor? - there is no separate support for a proxy authenticator
+      this.interceptors.put("PROXY-AUTH", new Interceptor() {
+
+        @Override
+        public void before(BasicBuilder builder, HttpHeaders headers) {
+          builder.setHeader("Proxy-Authorization", proxyAuthorization);
+        }
+
+      });
     }
     if (preferHttp11) {
       builder.version(Version.HTTP_1_1);

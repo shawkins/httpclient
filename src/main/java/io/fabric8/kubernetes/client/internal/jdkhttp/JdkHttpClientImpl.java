@@ -143,13 +143,8 @@ public class JdkHttpClientImpl implements HttpClient {
   }
 
   @Override
-  public void clearPool() {
-    // nothing to do
-  }
-
-  @Override
   public io.fabric8.kubernetes.client.http.WebSocket.Builder newWebSocketBuilder() {
-    return new JdkWebSocketImpl.BuilderImpl(this).timeout(this.builder.readTimeout);
+    return new JdkWebSocketImpl.BuilderImpl(this);
   }
 
   @Override
@@ -220,6 +215,9 @@ public class JdkHttpClientImpl implements HttpClient {
     request.headers().map().forEach((k, v) -> {
       v.forEach(s -> builder.header(k, s));
     });
+    if (this.builder.readTimeout != null) {
+      builder.connectTimeout(this.builder.readTimeout);
+    }
 
     AtomicLong queueSize = new AtomicLong();
 
