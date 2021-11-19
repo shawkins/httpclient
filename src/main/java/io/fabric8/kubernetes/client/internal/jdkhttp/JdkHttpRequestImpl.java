@@ -5,14 +5,16 @@ import io.fabric8.kubernetes.client.http.HttpRequest;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.Flow.Subscriber;
 
 public class JdkHttpRequestImpl implements HttpRequest {
 
   private static final String CONTENT_TYPE = "Content-Type";
-  private static final String CONTENT_LENGTH = "Content-Length";
 
   public static class BuilderImpl implements Builder {
 
@@ -66,9 +68,20 @@ public class JdkHttpRequestImpl implements HttpRequest {
     @Override
     public Builder post(String contentType, InputStream stream, long length) {
       this.bodyString = null;
+      BodyPublisher publisher = BodyPublishers.ofInputStream(() -> stream);
       this.builder.setHeader(CONTENT_TYPE, contentType)
-          .setHeader(CONTENT_LENGTH, String.valueOf(length))
-          .POST(BodyPublishers.ofInputStream(() -> stream));
+          .POST(new BodyPublisher() {
+            
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+              publisher.subscribe(subscriber);
+            }
+            
+            @Override
+            public long contentLength() {
+              return length;
+            }
+          });
       return this;
     }
 
@@ -88,6 +101,12 @@ public class JdkHttpRequestImpl implements HttpRequest {
       if (duration != null) {
         builder.timeout(duration);
       }
+      return this;
+    }
+
+    @Override
+    public Builder expectContinue() {
+      builder.expectContinue(true);
       return this;
     }
 

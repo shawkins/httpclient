@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.Reader;
+import java.net.URI;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpResponse.BodySubscriber;
@@ -224,7 +225,14 @@ public class JdkHttpClientImpl implements HttpClient {
     // use a responseholder to convey both the exception and the websocket
     CompletableFuture<WebSocketResponse> response = new CompletableFuture<JdkHttpClientImpl.WebSocketResponse>();
 
-    builder.buildAsync(request.uri(), new JdkWebSocketImpl.ListenerAdapter(listener, queueSize)).whenComplete((w, t) -> {
+    URI uri = request.uri();
+    if (uri.getScheme().startsWith("http")) {
+      // the jdk logic expects a ws uri
+      // after the https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8245245 it just does the reverse of this
+      // to convert back to http(s) ...
+      uri = URI.create("ws" + uri.toString().substring(4));
+    }
+    builder.buildAsync(uri, new JdkWebSocketImpl.ListenerAdapter(listener, queueSize)).whenComplete((w, t) -> {
       if (t instanceof java.net.http.WebSocketHandshakeException) {
         response.complete(new WebSocketResponse(new JdkWebSocketImpl(queueSize, w), (WebSocketHandshakeException)t));
       } else if (t != null) {
