@@ -24,8 +24,8 @@
   <dependencies>
   	<dependency>
   		<groupId>io.fabric8</groupId>
-  		<artifactId>kubernetes-client</artifactId>
-  		<version>5.10-SNAPSHOT</version>
+  		<artifactId>openshift-client</artifactId>
+  		<version>5.11-SNAPSHOT</version>
   	</dependency>
   </dependencies>
 </project>

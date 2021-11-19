@@ -11,7 +11,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManager;
 
-import java.net.Authenticator;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.http.HttpClient.Redirect;
@@ -37,7 +36,6 @@ class JdkHttpClientBuilderImpl implements Builder {
   LinkedHashMap<String, Interceptor> interceptors = new LinkedHashMap<>();
   Duration connectTimeout;
   Duration readTimeout;
-  Authenticator authenticator;
   private SSLContext sslContext;
   private Consumer<java.net.http.HttpClient.Builder> additionalConfig;
   private String proxyAuthorization;
@@ -51,9 +49,6 @@ class JdkHttpClientBuilderImpl implements Builder {
     java.net.http.HttpClient.Builder builder = java.net.http.HttpClient.newBuilder();
     if (connectTimeout != null) {
       builder.connectTimeout(connectTimeout);
-    }
-    if (authenticator != null) {
-      builder.authenticator(authenticator);
     }
     if (sslContext != null) {
       builder.sslContext(sslContext);
@@ -125,9 +120,6 @@ class JdkHttpClientBuilderImpl implements Builder {
 
   @Override
   public Builder authenticatorNone() {
-    this.authenticator = new Authenticator() {
-
-    };
     return this;
   }
 
@@ -174,7 +166,6 @@ class JdkHttpClientBuilderImpl implements Builder {
 
   public Builder copy() {
     JdkHttpClientBuilderImpl copy = new JdkHttpClientBuilderImpl();
-    copy.authenticator = this.authenticator;
     copy.connectTimeout = this.connectTimeout;
     copy.readTimeout = this.readTimeout;
     copy.sslContext = this.sslContext;
