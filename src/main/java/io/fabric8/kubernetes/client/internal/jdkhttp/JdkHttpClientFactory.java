@@ -25,10 +25,10 @@ public class JdkHttpClientFactory implements HttpClient.Factory {
    * @param additionalConfig a consumer that allows overriding HTTP client properties
    * @return returns an HTTP client
    */
-  public static io.fabric8.kubernetes.client.http.HttpClient createHttpClient(Config config, Consumer<java.net.http.HttpClient.Builder> additionalConfig) {
+  public io.fabric8.kubernetes.client.http.HttpClient createHttpClient(Config config, Consumer<java.net.http.HttpClient.Builder> additionalConfig) {
     JdkHttpClientBuilderImpl builderWrapper = new JdkHttpClientBuilderImpl();
 
-    HttpClientUtils.applyCommonConfiguration(config, builderWrapper);
+    HttpClientUtils.applyCommonConfiguration(config, builderWrapper, this);
 
     builderWrapper.additionalConfig(additionalConfig);
 
