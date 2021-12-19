@@ -19,7 +19,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * TODO: if there is another implementation that does not support client builder copying, then this needs to be abstracted -
@@ -37,16 +36,20 @@ class JdkHttpClientBuilderImpl implements Builder {
   Duration connectTimeout;
   Duration readTimeout;
   private SSLContext sslContext;
-  private Consumer<java.net.http.HttpClient.Builder> additionalConfig;
+  private JdkHttpClientFactory clientFactory;
   private String proxyAuthorization;
   private InetSocketAddress proxyAddress;
   private boolean followRedirects;
   private boolean preferHttp11;
   private TlsVersion[] tlsVersions;
 
+  JdkHttpClientBuilderImpl(JdkHttpClientFactory factory) {
+    this.clientFactory = factory;
+  }
+
   @Override
   public HttpClient build() {
-    java.net.http.HttpClient.Builder builder = java.net.http.HttpClient.newBuilder();
+    java.net.http.HttpClient.Builder builder = clientFactory.createNewHttpClientBuilder();
     if (connectTimeout != null) {
       builder.connectTimeout(connectTimeout);
     }
@@ -78,9 +81,7 @@ class JdkHttpClientBuilderImpl implements Builder {
       builder.sslParameters(new SSLParameters(null,
           Arrays.asList(tlsVersions).stream().map(TlsVersion::javaName).toArray(String[]::new)));
     }
-    if (additionalConfig != null) {
-      additionalConfig.accept(builder);
-    }
+    clientFactory.additionalConfig(builder);
     return new JdkHttpClientImpl(this, builder.build());
   }
 
@@ -159,13 +160,8 @@ class JdkHttpClientBuilderImpl implements Builder {
     return this;
   }
 
-  public Builder additionalConfig(Consumer<java.net.http.HttpClient.Builder> additionalConfig) {
-    this.additionalConfig = additionalConfig;
-    return this;
-  }
-
   public Builder copy() {
-    JdkHttpClientBuilderImpl copy = new JdkHttpClientBuilderImpl();
+    JdkHttpClientBuilderImpl copy = new JdkHttpClientBuilderImpl(this.clientFactory);
     copy.connectTimeout = this.connectTimeout;
     copy.readTimeout = this.readTimeout;
     copy.sslContext = this.sslContext;
@@ -173,11 +169,9 @@ class JdkHttpClientBuilderImpl implements Builder {
     copy.followRedirects = this.followRedirects;
     copy.proxyAddress = this.proxyAddress;
     copy.proxyAuthorization = this.proxyAuthorization;
-    copy.additionalConfig = this.additionalConfig;
     copy.tlsVersions = this.tlsVersions;
     copy.preferHttp11 = this.preferHttp11;
     copy.followRedirects = this.followRedirects;
-    copy.additionalConfig = this.additionalConfig;
     return copy;
   }
 

@@ -25,7 +25,13 @@
   	<dependency>
   		<groupId>io.fabric8</groupId>
   		<artifactId>openshift-client</artifactId>
-  		<version>5.11-SNAPSHOT</version>
+  		<version>5.12-SNAPSHOT</version>
+  		<exclusions>
+  			<exclusion>
+  				<groupId>com.squareup.okhttp3</groupId>
+  				<artifactId>okhttp</artifactId>
+  			</exclusion>
+  		</exclusions>
   	</dependency>
   </dependencies>
 </project>
