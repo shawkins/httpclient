@@ -216,6 +216,8 @@ public class JdkHttpClientImpl implements HttpClient {
     request.headers().map().forEach((k, v) -> {
       v.forEach(s -> builder.header(k, s));
     });
+    // the Watch logic sets a websocketTimeout as the readTimeout
+    // TODO: this should probably be made clearer in the docs
     if (this.builder.readTimeout != null) {
       builder.connectTimeout(this.builder.readTimeout);
     }
