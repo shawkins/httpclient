@@ -19,6 +19,7 @@ class JdkWebSocketImpl implements WebSocket {
 
     private JdkHttpClientImpl httpClientImpl;
     private java.net.http.HttpRequest.Builder builder;
+    String subprotocol;
 
     public BuilderImpl(JdkHttpClientImpl jdkHttpClientImpl) {
       this(jdkHttpClientImpl, HttpRequest.newBuilder());
@@ -52,12 +53,18 @@ class JdkWebSocketImpl implements WebSocket {
       return this;
     }
 
+    @Override
+    public BuilderImpl subprotocol(String protocol) {
+      this.subprotocol = protocol;
+      return this;
+    }
+
     public HttpRequest asRequest() {
       return this.builder.build();
     }
 
     public BuilderImpl copy() {
-      return new BuilderImpl(httpClientImpl, builder.copy());
+      return new BuilderImpl(httpClientImpl, builder.copy()).subprotocol(subprotocol);
     }
 
   }
@@ -116,6 +123,7 @@ class JdkWebSocketImpl implements WebSocket {
 
     @Override
     public void onOpen(java.net.http.WebSocket webSocket) {
+      webSocket.request(1);
       listener.onOpen(new JdkWebSocketImpl(queueSize, webSocket));
     }
   }
@@ -154,7 +162,7 @@ class JdkWebSocketImpl implements WebSocket {
 
   @Override
   public boolean sendClose(int code, String reason) {
-    CompletableFuture<java.net.http.WebSocket> cf = webSocket.sendClose(code, reason);
+    CompletableFuture<java.net.http.WebSocket> cf = webSocket.sendClose(code, reason == null ? "Closing" : reason);
     return asBoolean(cf);
   }
 

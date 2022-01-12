@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -216,6 +217,9 @@ public class JdkHttpClientImpl implements HttpClient {
     request.headers().map().forEach((k, v) -> {
       v.forEach(s -> builder.header(k, s));
     });
+    if (webSocketBuilder.subprotocol != null) {
+      builder.subprotocols(webSocketBuilder.subprotocol);
+    }
     // the Watch logic sets a websocketTimeout as the readTimeout
     // TODO: this should probably be made clearer in the docs
     if (this.builder.readTimeout != null) {
@@ -235,6 +239,9 @@ public class JdkHttpClientImpl implements HttpClient {
       uri = URI.create("ws" + uri.toString().substring(4));
     }
     builder.buildAsync(uri, new JdkWebSocketImpl.ListenerAdapter(listener, queueSize)).whenComplete((w, t) -> {
+      if (t instanceof CompletionException && t.getCause() != null) {
+        t = t.getCause();
+      }
       if (t instanceof java.net.http.WebSocketHandshakeException) {
         response.complete(new WebSocketResponse(new JdkWebSocketImpl(queueSize, w), (WebSocketHandshakeException)t));
       } else if (t != null) {

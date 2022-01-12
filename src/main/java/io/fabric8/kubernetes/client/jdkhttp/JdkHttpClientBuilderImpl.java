@@ -87,7 +87,11 @@ class JdkHttpClientBuilderImpl implements Builder {
 
   @Override
   public Builder readTimeout(long readTimeout, TimeUnit unit) {
-    this.readTimeout = Duration.ofNanos(unit.toNanos(readTimeout));
+    if (readTimeout == 0) {
+      this.readTimeout = null;
+    } else {
+      this.readTimeout = Duration.ofNanos(unit.toNanos(readTimeout));
+    }
     return this;
   }
 
