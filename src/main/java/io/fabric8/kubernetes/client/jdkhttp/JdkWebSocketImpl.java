@@ -1,4 +1,4 @@
-package io.fabric8.kubernetes.client.internal.jdkhttp;
+package io.fabric8.kubernetes.client.jdkhttp;
 
 import io.fabric8.kubernetes.client.http.WebSocket;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class JdkWebSocketImpl implements WebSocket {
+class JdkWebSocketImpl implements WebSocket {
 
   static class BuilderImpl implements Builder {
 

@@ -1,4 +1,4 @@
-package io.fabric8.kubernetes.client.internal.jdkhttp;
+package io.fabric8.kubernetes.client.jdkhttp;
 
 import io.fabric8.kubernetes.client.http.HttpRequest;
 
@@ -12,7 +12,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Flow.Subscriber;
 
-public class JdkHttpRequestImpl implements HttpRequest {
+class JdkHttpRequestImpl implements HttpRequest {
 
   private static final String CONTENT_TYPE = "Content-Type";
 
@@ -71,12 +71,12 @@ public class JdkHttpRequestImpl implements HttpRequest {
       BodyPublisher publisher = BodyPublishers.ofInputStream(() -> stream);
       this.builder.setHeader(CONTENT_TYPE, contentType)
           .POST(new BodyPublisher() {
-            
+
             @Override
             public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
               publisher.subscribe(subscriber);
             }
-            
+
             @Override
             public long contentLength() {
               return length;

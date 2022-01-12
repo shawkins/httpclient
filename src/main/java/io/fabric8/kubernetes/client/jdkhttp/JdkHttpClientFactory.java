@@ -1,4 +1,4 @@
-package io.fabric8.kubernetes.client.internal.jdkhttp;
+package io.fabric8.kubernetes.client.jdkhttp;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.http.HttpClient;
