@@ -83,8 +83,8 @@ public class JdkHttpClientImpl implements HttpClient {
   }
 
   @Override
-  public Builder newBuilder() {
-    return builder.copy();
+  public DerivedClientBuilder newBuilder() {
+    return this.builder.copy(httpClient);
   }
 
   @Override

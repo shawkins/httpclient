@@ -42,6 +42,7 @@ class JdkHttpClientBuilderImpl implements Builder {
   private boolean followRedirects;
   private boolean preferHttp11;
   private TlsVersion[] tlsVersions;
+  private java.net.http.HttpClient httpClient;
 
   JdkHttpClientBuilderImpl(JdkHttpClientFactory factory) {
     this.clientFactory = factory;
@@ -49,6 +50,9 @@ class JdkHttpClientBuilderImpl implements Builder {
 
   @Override
   public HttpClient build() {
+    if (httpClient != null) {
+      return new JdkHttpClientImpl(this, httpClient);
+    }
     java.net.http.HttpClient.Builder builder = clientFactory.createNewHttpClientBuilder();
     if (connectTimeout != null) {
       builder.connectTimeout(connectTimeout);
@@ -86,7 +90,7 @@ class JdkHttpClientBuilderImpl implements Builder {
   }
 
   @Override
-  public Builder readTimeout(long readTimeout, TimeUnit unit) {
+  public JdkHttpClientBuilderImpl readTimeout(long readTimeout, TimeUnit unit) {
     if (readTimeout == 0) {
       this.readTimeout = null;
     } else {
@@ -164,7 +168,7 @@ class JdkHttpClientBuilderImpl implements Builder {
     return this;
   }
 
-  public Builder copy() {
+  public JdkHttpClientBuilderImpl copy(java.net.http.HttpClient httpClient) {
     JdkHttpClientBuilderImpl copy = new JdkHttpClientBuilderImpl(this.clientFactory);
     copy.connectTimeout = this.connectTimeout;
     copy.readTimeout = this.readTimeout;
@@ -176,6 +180,7 @@ class JdkHttpClientBuilderImpl implements Builder {
     copy.tlsVersions = this.tlsVersions;
     copy.preferHttp11 = this.preferHttp11;
     copy.followRedirects = this.followRedirects;
+    copy.httpClient = httpClient;
     return copy;
   }
 
