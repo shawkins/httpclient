@@ -36,7 +36,7 @@ class JdkHttpClientBuilderImpl implements Builder {
   Duration connectTimeout;
   Duration readTimeout;
   private SSLContext sslContext;
-  private JdkHttpClientFactory clientFactory;
+  JdkHttpClientFactory clientFactory;
   private String proxyAuthorization;
   private InetSocketAddress proxyAddress;
   private boolean followRedirects;

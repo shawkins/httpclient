@@ -79,7 +79,9 @@ public class JdkHttpClientImpl implements HttpClient {
 
   @Override
   public void close() {
-    // nothing to do, until an executor service is introduced
+    // nothing to do by default, but a custom factory may want to
+    // take action
+    builder.clientFactory.closeHttpClient(this);
   }
 
   @Override

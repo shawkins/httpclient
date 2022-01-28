@@ -29,4 +29,12 @@ public class JdkHttpClientFactory implements HttpClient.Factory {
     return java.net.http.HttpClient.newBuilder();
   }
 
+  /**
+   * Cleanup hook called by {@link HttpClient#close()}
+   * @param jdkHttpClientImpl
+   */
+  protected void closeHttpClient(JdkHttpClientImpl jdkHttpClientImpl) {
+
+  }
+
 }
